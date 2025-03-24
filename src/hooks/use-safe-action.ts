@@ -37,7 +37,7 @@ export type Action<TInput, TOutput> = (
   options?: { signal: AbortSignal }
 ) => Promise<ActionState<TInput, TOutput>>;
 
-type UseActionOptions<TOutput> = {
+export type UseActionOptions<TOutput> = {
   onStart?: () => void;
   onSuccess?: (data?: TOutput) => void;
   onError?: (error: string) => void;

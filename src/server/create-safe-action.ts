@@ -20,7 +20,7 @@
  * and retries server actions upon failure automatically out of the box.
  */
 
-type Session = { authenticated: boolean; role?: string };
+export type SessionObject = { authenticated: boolean; role?: string };
 
 import type { z } from "zod";
 import { cookies } from "next/headers";
@@ -46,7 +46,7 @@ export const createSafeAction = <TInput, TOutput>(
       { headers: { Cookie: (await cookies()).toString() } }
     );
 
-    const session = (await response.json()) as Session;
+    const session = (await response.json()) as SessionObject;
     if (!session.authenticated) return { error: "Un-authenticated" };
     if (!session.role) return { error: "No role found in session" };
     if (

@@ -1,2 +1,3 @@
-export { createSafeAction } from "./server/create-safe-action";
-export { useSafeAction } from "./hooks/use-safe-action";
+export * from "./server/create-safe-action";
+export * from "./hooks/use-safe-action";
+export * from "./types";
