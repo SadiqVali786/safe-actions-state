@@ -1,0 +1,19 @@
+{
+  "name": "safe-actions-state",
+  "version": "1.0.0",
+  "description": "A lightweight, type-safe utility for Next.js server & client actions with built-in auth, RBAC, Zod validation, auto retries, and real-time toast feedback. Just write your DB logic & zod schema, for your server action, we handle validation, auth, errors, retries & UI feedback seamlessly out of the box. No extra code, just focus on your logic! 🚀",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SadiqVali786/safe-actions-state.git"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
