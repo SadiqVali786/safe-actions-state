@@ -1,3 +1,4 @@
 src/
 tsconfig.json
 LICENSE
+bun.config.ts
