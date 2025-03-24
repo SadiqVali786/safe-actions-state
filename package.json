@@ -4,7 +4,7 @@
   "description": "A lightweight, type-safe utility for Next.js server & client actions with built-in auth, RBAC, Zod validation, auto retries, and real-time toast feedback. Just write your DB logic & zod schema, for your server action, we handle validation, auth, errors, retries & UI feedback seamlessly out of the box. No extra code, just focus on your logic! 🚀",
   "module": "src/index.ts",
   "type": "module",
-  "private": true,
+  "private": false,
   "license": "MIT",
   "publishConfig": {
     "access": "public"
