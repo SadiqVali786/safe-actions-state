@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "declaration": true,
+
     // Environment setup & latest features
     "lib": ["esnext"],
     "target": "ESNext",
@@ -24,5 +26,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "include": ["src"]
 }
