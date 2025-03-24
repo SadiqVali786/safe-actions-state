@@ -11,13 +11,16 @@
     "url": "https://github.com/SadiqVali786/safe-actions-state.git"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/react": "^19.0.12"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "next": "^15.2.3",
+    "react": "^19.0.0",
+    "react-hot-toast": "^2.5.2",
     "zod": "^3.24.2",
     "zod-error": "^1.5.0"
   }
