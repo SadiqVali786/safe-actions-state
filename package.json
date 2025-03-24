@@ -6,6 +6,9 @@
   "type": "module",
   "private": true,
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/SadiqVali786/safe-actions-state.git"
