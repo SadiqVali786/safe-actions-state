@@ -1,6 +1,6 @@
 {
   "name": "safe-actions-state",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A lightweight, type-safe utility for Next.js server & client actions with built-in authentication and RBAC(role based access control) checks, Zod validation, auto retries if server action fails, and real-time toast feedback out of the box. Just write your DB logic & Zod schema, we handle zod validation, authentication, RBAC authorization, error handling, retries & UI feedback seamlessly. No extra code from your side, just focus on your business logic & DB interaction only! 🚀",
   "private": false,
   "type": "module",

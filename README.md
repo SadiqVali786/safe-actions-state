@@ -245,7 +245,8 @@ export default function Home() {
 ## 🎖 Community & Contributions
 
 🚀 **Loved this package? Give it a star!** ⭐
-🔗 **[GitHub Repository](https://github.com/SadiqVali786/safe-actions-state)**
+🔗 **[GitHub Repository](https://github.com/SadiqVali786/safe-actions-state)**\
+🚀 **Try it out and give me feedback on how it can be improved!**
 🔗 **[NPM Package](https://www.npmjs.com/package/safe-actions-state)**
 
 ## ❤️ Support
