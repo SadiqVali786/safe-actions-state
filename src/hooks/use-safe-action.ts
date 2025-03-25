@@ -3,38 +3,38 @@
  * ########################### CLIENT SIDE ACTION #########################
  * ########################################################################
  * 1. You can use this hook to execute any server action and handle its state in a client component.
- * 2. Handles the cancellation of the action. Use cancel method exposed by the hook to cancel the action.
+ * 2. Use abortAction method exposed by the hook to abort the action and retries.
  * 3. Handles RBAC(role-based access control) out of the box.
- * 4. Handles the toast messages, to show a toast message, if the action is in progress, or if
- * it succeeds, or if it fails for live visual feedback to the user.
+ * 4. Handles the toast messages, to show the toast message, if the action is in progress, or if
+ * it succeeded, or if it failed for live visual feedback to the user.
  * 5. Handles the retry logic, if the action fails, it will retry the action automatically, out of the box.
  *
- * @param action - The action to execute. written by you, usually just contains DB interaction logic.
- * @param action.data - The data to pass to the action.
- * @param action.options - The options for the action.
- * @param action.options.signal - The signal to abort the action.
- * @param options - The options for the action.
- * @param options.onStart - The function to call when the action starts.
- * @param options.onSuccess - The function to call when the action succeeds.
- * @param options.onError - The function to call when the action fails.
- * @param options.onComplete - The function to call when the action completes.
- * @param options.toastMessages - The messages to display in the toast.
+ * @param serverAction - The action written by you, usually should contain DB interaction & your business logic only.
+ * @param serverAction.data - Input arguements to the server action.
+ * @param serverAction.signal - The signal to abort the server action & retries.
+ * @param options - The options for the client action.
+ * @param options.onStart - The function to be called, when the server action starts.
+ * @param options.onSuccess - The function to be called, when the server action succeeds.
+ * @param options.onError - The function to be called, when the server action fails.
+ * @param options.onComplete - The function to be called, when the server action completes.
+ * @param options.toastMessages - The messages to display in the toast, when server action is in pending, success states.
+ * For error state the actual error information will be displayed in the toast.
  *
- * @returns execute - The function to execute the action.
- * @returns cancel - The function to cancel the action.
- * @returns error - The error that occurred during the action.
- * @returns data - The data returned by the action.
- * @returns isPending - The state of the action.
- * @returns fieldErrors - The field errors that occurred during the action.
+ * @returns safeAction - The function to execute the server action.
+ * @returns abortAction - The function to abort the server action.
+ * @returns error - The error that occurred during the complete server action life cycle.
+ * @returns data - The data returned by the server action.
+ * @returns isPending - The state of the server action.
+ * @returns fieldErrors - The field errors that occurred during zod validation.
  */
 
 import toast from "react-hot-toast";
 import { useState, useCallback, useRef } from "react";
 import type { ActionState, FieldErrors } from "../types";
 
-export type Action<TInput, TOutput> = (
+export type Handler<TInput, TOutput> = (
   data?: TInput,
-  options?: { signal: AbortSignal }
+  signal?: AbortSignal
 ) => Promise<ActionState<TInput, TOutput>>;
 
 export type UseActionOptions<TOutput> = {
@@ -46,19 +46,19 @@ export type UseActionOptions<TOutput> = {
 };
 
 export const useSafeAction = <TInput, TOutput>(
-  action: Action<TInput, TOutput>,
+  serverAction: Handler<TInput, TOutput>,
   options: UseActionOptions<TOutput> = {}
 ) => {
   const [fieldErrors, setFieldErrors] = useState<
     FieldErrors<TInput> | undefined
   >(undefined);
-  const [error, setError] = useState<string | undefined>(undefined);
-  const [data, setData] = useState<TOutput | undefined>(undefined);
-  const [isPending, setIsPending] = useState<boolean>(false);
   const toastId = useRef<string | null>(null);
   const abortController = useRef(new AbortController());
+  const [isPending, setIsPending] = useState<boolean>(false);
+  const [data, setData] = useState<TOutput | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined);
 
-  const execute = useCallback(
+  const safeAction = useCallback(
     async (input?: TInput) => {
       options.onStart?.();
       setIsPending(true);
@@ -68,9 +68,10 @@ export const useSafeAction = <TInput, TOutput>(
       );
 
       try {
-        const result = await action(input, {
-          signal: abortController.current.signal,
-        });
+        const result = await serverAction(
+          input,
+          abortController.current.signal
+        );
 
         setFieldErrors(result?.fieldErrors);
         if (result?.error) {
@@ -102,14 +103,14 @@ export const useSafeAction = <TInput, TOutput>(
         options.onComplete?.();
       }
     },
-    [action, options]
+    [serverAction, options]
   );
 
-  const cancel = () => abortController.current.abort();
+  const abortAction = () => abortController.current.abort();
 
   return {
-    execute,
-    cancel,
+    safeAction,
+    abortAction,
     error,
     data,
     isPending,

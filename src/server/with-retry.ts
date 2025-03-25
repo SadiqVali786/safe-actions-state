@@ -12,7 +12,7 @@ export const withRetry = async <T>(
   signal?: AbortSignal
 ): Promise<T> => {
   for (let attempt = 0; attempt < retries; attempt++) {
-    if (signal?.aborted) throw new Error("Request aborted");
+    if (signal?.aborted) throw new Error("Server Action aborted");
     try {
       return await fn();
     } catch (error) {

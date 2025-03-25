@@ -8,16 +8,16 @@
  * 3. RBAC(role-based access control) checks,
  * 4. Validates input data against a Zod schema
  * 5. Executes the handler function which usually contains just DB interaction code written by you.
- * 6. In this process it handles all the validation errors appropriately.
+ * 6. In this process it handles all the validation errors or any error raised appropriately.
  *
  * @param handler - The handler function usually just contains DB interaction logic written by you.
  * @param handler.validatedData - The validated data from the zod schema.
- * @param handler.signal - The signal to cancel the action.
- * @param schema - The Zod schema to validate the input data against.
- * @param allowedRoles - The allowed roles of the user to access the action.
- * @param retries - The number of retries to attempt if the action fails. Default is 3.
- * @returns The safe action function that validates and handles RBAC(role-based access control) checks
- * and retries server actions upon failure automatically out of the box.
+ * @param handler.signal - The signal to abort the server action.
+ * @param schema - The Zod schema to validate the input arguments to the server action.
+ * @param allowedRoles - The allowed roles of the user to access the specific server action.
+ * @param retries - The number of retries to attempt if the server action fails. Default is 3.
+ * @returns It return the safe action function that validates and handles RBAC(role-based access control)
+ * checks and retries server actions upon failure automatically out of the box.
  */
 
 export type SessionObject = { authenticated: boolean; role?: string };
@@ -30,8 +30,7 @@ import { withRetry } from "./with-retry";
 
 export const createSafeAction = <TInput, TOutput>(
   handler: (
-    validatedData?: TInput,
-    signal?: AbortSignal
+    validatedData?: TInput
   ) => Promise<ActionState<TInput, TOutput> | void>,
   schema?: z.Schema<TInput>,
   allowedRoles?: string[],
@@ -41,8 +40,9 @@ export const createSafeAction = <TInput, TOutput>(
     data?: TInput,
     options?: { signal?: AbortSignal }
   ): Promise<ActionState<TInput, TOutput> | void> => {
+    // ########################################################
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/safe-actions`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/safe-actions-state`,
       { headers: { Cookie: (await cookies()).toString() } }
     );
 
@@ -55,6 +55,7 @@ export const createSafeAction = <TInput, TOutput>(
       !allowedRoles?.includes(session.role)
     )
       return { error: "Un-authorized" };
+    // ########################################################
 
     if (!schema && !!data)
       return { error: "Schema is required when data is provided" };
@@ -62,7 +63,7 @@ export const createSafeAction = <TInput, TOutput>(
       return { error: "Data is required when schema is provided" };
     if (!schema && !data)
       return await withRetry(
-        () => handler(undefined, options?.signal),
+        () => handler(undefined),
         retries,
         options?.signal
       );
@@ -77,14 +78,14 @@ export const createSafeAction = <TInput, TOutput>(
           maxErrors: 1,
           delimiter: { component: ": " },
           message: { enabled: true, label: "" },
-          // path: { enabled: false },
+          // path: { enabled: false }, TODO:
           code: { enabled: false },
         }),
       };
     }
 
     return await withRetry(
-      async () => await handler(validationResult.data, options?.signal),
+      async () => await handler(validationResult.data),
       retries,
       options?.signal
     );
