@@ -34,28 +34,29 @@ export const createSafeAction = <TInput, TOutput>(
   ) => Promise<ActionState<TInput, TOutput> | void>,
   schema?: z.Schema<TInput>,
   allowedRoles?: string[],
+  isPrivate: boolean = true,
   retries: number = 3
 ) => {
   return async (
     data?: TInput,
     options?: { signal?: AbortSignal }
   ): Promise<ActionState<TInput, TOutput> | void> => {
-    // ########################################################
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/safe-actions-state`,
-      { headers: { Cookie: (await cookies()).toString() } }
-    );
+    if (isPrivate) {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/${process.env.SAFE_ACTIONS_STATE_ROUTE}`,
+        { headers: { Cookie: (await cookies()).toString() } }
+      );
 
-    const session = (await response.json()) as SessionObject;
-    if (!session.authenticated) return { error: "Un-authenticated" };
-    if (!session.role) return { error: "No role found in session" };
-    if (
-      allowedRoles &&
-      allowedRoles.length > 0 &&
-      !allowedRoles?.includes(session.role)
-    )
-      return { error: "Un-authorized" };
-    // ########################################################
+      const session = (await response.json()) as SessionObject;
+      if (!session.authenticated) return { error: "Un-authenticated" };
+      if (!session.role) return { error: "No role found in session" };
+      if (
+        allowedRoles &&
+        allowedRoles.length > 0 &&
+        !allowedRoles?.includes(session.role)
+      )
+        return { error: "Un-authorized" };
+    }
 
     if (!schema && !!data)
       return { error: "Schema is required when data is provided" };
