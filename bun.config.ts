@@ -5,6 +5,7 @@ await Bun.build({
   outdir: "./dist",
   minify: true,
   splitting: true,
+  format: "esm",
   external: [
     "zod",
     "react-hot-toast",
