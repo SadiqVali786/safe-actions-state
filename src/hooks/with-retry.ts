@@ -18,7 +18,7 @@ export const withRetry = async <T>(
     } catch (error) {
       if (attempt === retries - 1) throw error;
       // reattempt after 1 second if the action fails
-      else new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
   throw new Error("Max retries reached");

@@ -12,12 +12,11 @@
  *
  * @param handler - The handler function usually just contains DB interaction logic written by you.
  * @param handler.validatedData - The validated data from the zod schema.
- * @param handler.signal - The signal to abort the server action.
  * @param schema - The Zod schema to validate the input arguments to the server action.
  * @param allowedRoles - The allowed roles of the user to access the specific server action.
- * @param retries - The number of retries to attempt if the server action fails. Default is 3.
- * @returns It return the safe action function that validates and handles RBAC(role-based access control)
- * checks and retries server actions upon failure automatically out of the box.
+ * @param isPrivate - Whether the server action is private or not.
+ * @returns It returns safe action function that validates and handles authentication checks & RBAC
+ * (role-based access control) checks automatically out of the box.
  */
 
 export type SessionObject = { authenticated: boolean; role?: string };
@@ -26,7 +25,6 @@ import type { z } from "zod";
 import { cookies } from "next/headers";
 import { generateErrorMessage } from "zod-error";
 import type { ActionState, FieldErrors } from "../types";
-import { withRetry } from "./with-retry";
 
 export const createSafeAction = <TInput, TOutput>(
   handler: (
@@ -34,12 +32,10 @@ export const createSafeAction = <TInput, TOutput>(
   ) => Promise<ActionState<TInput, TOutput> | void>,
   schema?: z.Schema<TInput>,
   allowedRoles?: string[],
-  isPrivate: boolean = true,
-  retries: number = 3
+  isPrivate: boolean = true
 ) => {
   return async (
-    data?: TInput,
-    options?: { signal?: AbortSignal }
+    data?: TInput
   ): Promise<ActionState<TInput, TOutput> | void> => {
     if (isPrivate) {
       const response = await fetch(
@@ -62,12 +58,7 @@ export const createSafeAction = <TInput, TOutput>(
       return { error: "Schema is required when data is provided" };
     if (!!schema && !data)
       return { error: "Data is required when schema is provided" };
-    if (!schema && !data)
-      return await withRetry(
-        () => handler(undefined),
-        retries,
-        options?.signal
-      );
+    if (!schema && !data) return await handler(undefined);
 
     // if (!!schema && !!data) {} // continue
     const validationResult = schema!.safeParse(data);
@@ -85,10 +76,6 @@ export const createSafeAction = <TInput, TOutput>(
       };
     }
 
-    return await withRetry(
-      async () => await handler(validationResult.data),
-      retries,
-      options?.signal
-    );
+    return await handler(validationResult.data);
   };
 };

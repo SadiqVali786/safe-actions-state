@@ -9,9 +9,8 @@
  * it succeeded, or if it failed for live visual feedback to the user.
  * 5. Handles the retry logic, if the action fails, it will retry the action automatically, out of the box.
  *
- * @param serverAction - The action written by you, usually should contain DB interaction & your business logic only.
+ * @param serverAction - The action created by createSafeAction function.
  * @param serverAction.data - Input arguements to the server action.
- * @param serverAction.signal - The signal to abort the server action & retries.
  * @param options - The options for the client action.
  * @param options.onStart - The function to be called, when the server action starts.
  * @param options.onSuccess - The function to be called, when the server action succeeds.
@@ -19,7 +18,6 @@
  * @param options.onComplete - The function to be called, when the server action completes.
  * @param options.toastMessages - The messages to display in the toast, when server action is in pending, success states.
  * For error state the actual error information will be displayed in the toast.
- *
  * @returns safeAction - The function to execute the server action.
  * @returns abortAction - The function to abort the server action.
  * @returns error - The error that occurred during the complete server action life cycle.
@@ -31,13 +29,14 @@
 import toast from "react-hot-toast";
 import { useState, useCallback, useRef } from "react";
 import type { ActionState, FieldErrors } from "../types";
+import { withRetry } from "./with-retry";
 
-export type Handler<TInput, TOutput> = (
-  data?: TInput,
-  signal?: AbortSignal
+export type SafeActionType<TInput, TOutput> = (
+  data?: TInput
 ) => Promise<ActionState<TInput, TOutput>>;
 
 export type UseActionOptions<TOutput> = {
+  retries?: number;
   onStart?: () => void;
   onSuccess?: (data?: TOutput) => void;
   onError?: (error: string) => void;
@@ -46,7 +45,7 @@ export type UseActionOptions<TOutput> = {
 };
 
 export const useSafeAction = <TInput, TOutput>(
-  serverAction: Handler<TInput, TOutput>,
+  serverAction: SafeActionType<TInput, TOutput>,
   options: UseActionOptions<TOutput> = {}
 ) => {
   const [fieldErrors, setFieldErrors] = useState<
@@ -68,8 +67,9 @@ export const useSafeAction = <TInput, TOutput>(
       );
 
       try {
-        const result = await serverAction(
-          input,
+        const result = await withRetry(
+          async () => await serverAction(input),
+          options.retries,
           abortController.current.signal
         );
 

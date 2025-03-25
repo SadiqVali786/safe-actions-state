@@ -1,21 +1,26 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "declaration": true,
     "rootDir": "src",
     "outDir": "dist",
 
     // Environment setup & latest features
     "lib": ["esnext"],
-    "target": "ESNext",
+    "target": "es5",
     "module": "ESNext",
     "moduleDetection": "force",
     "allowJs": true,
 
     // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": false,
+    "noEmit": true,
     "emitDeclarationOnly": true,
 
     // Best practices
