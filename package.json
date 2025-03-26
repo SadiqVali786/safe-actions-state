@@ -1,6 +1,6 @@
 {
   "name": "safe-actions-state",
-  "version": "1.0.22",
+  "version": "1.0.24",
   "author": "Sadiq Vali",
   "keywords": [],
   "description": "A lightweight, type-safe utility for Next.js server & client actions with built-in authentication and RBAC(role based access control) checks, Zod validation, auto retries if server action fails, and real-time toast feedback out of the box. Just write your DB logic & Zod schema, we handle zod validation, authentication, RBAC authorization, error handling, retries & UI feedback seamlessly. No extra code from your side, just focus on your business logic & DB interaction only! 🚀",
@@ -14,9 +14,10 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "sideEffects": false,
   "scripts": {
     "rollup": "rollup -c --bundleConfigAsCjs",
-    "publish": "bun run rollup && bun publish"
+    "pub": "bun run rollup && bun publish"
   },
   "repository": {
     "type": "git",
@@ -28,24 +29,23 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/bun": "latest",
-    "@types/react": "^19.0.12",
-    "next": "^15.2.3",
-    "react": "^19.0.0",
-    "react-hot-toast": "^2.5.2",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "tslib": "^2.8.1",
+    "rollup": "^4.37.0",
+    "@types/react": "^19.0.12",
+    "next": "^15.2.3",
+    "react": "^19.0.0",
     "typescript": "^5",
+    "react-hot-toast": "^2.5.2",
     "zod": "^3.24.2",
     "zod-error": "^1.5.0"
   },
-  "dependencies": {
-    "rollup": "^4.37.0"
-  },
   "peerDependencies": {
+    "@types/react": "^19.0.12",
+    "typescript": "^5",
     "zod": "^3.24.2",
     "zod-error": "^1.5.0",
-    "@types/react": "^19.0.12",
     "next": "^15.2.3",
     "react": "^19.0.0",
     "react-hot-toast": "^2.5.2"
