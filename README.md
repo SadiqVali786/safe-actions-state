@@ -37,7 +37,7 @@ With **Safe Action State**, you get:
 
 ## How Much Time Does **Safe Action State** Save?
 
-<div style="display: flex; justify-content: space-evenly; gap: 10px; width: 100%; max-width: 1000px;">
+<div style="display: flex; justify-content: space-evenly; width: 100%;">
   <img src="./assets/compare-sa-1.gif" alt="Safe Actions State" width="50%" height="1080" />
   <img src="./assets/compare-sa-2.gif" alt="Safe Actions State" width="50%" height="1080" />
 </div>
