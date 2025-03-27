@@ -125,6 +125,33 @@ Let’s break it down with real numbers:
 
 ## 📦 Installation & Setup Guide for Next.js
 
+### `pre-requisite` Step 0: Next.js project with auth.js setup (for now only auth.js is supported but will be extended to all other auth providers soon)
+
+NOTE: **Follow the official documentation for auth.js setup, below i am giving code for role setup to make things simple**
+
+```ts
+// src/auth.ts
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+
+declare module "next-auth" {
+  interface Session {
+    user: { role?: string };
+  }
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [GitHub],
+  callbacks: {
+    async session({ session }) {
+      session.user.role = "admin"; // hardcoding role for testing purpose only
+      return session;
+    },
+  },
+  secret: process.env.AUTH_SECRET,
+});
+```
+
 ### Step 1: Install the package. Supports **Bun, NPM, Yarn, PNPM**
 
 ```sh
@@ -147,10 +174,10 @@ pnpm add safe-actions-state
 npm install zod zod-error react-hot-toast
 ```
 
-### Step 3: Setup a API route **_api/safe-actions-state/route.ts_**
+### Step 3: Setup a API route **src/app/api/safe-actions-state/route.ts**
 
 ```ts
-// api/safe-actions-state/route.ts
+// src/app/api/safe-actions-state/route.ts
 import { auth } from "@/auth"; // adjust this import path as per your project structure
 import { NextRequest, NextResponse } from "next/server";
 
@@ -164,7 +191,7 @@ export const GET = async (req: NextRequest) => {
 ### Step 4: Setup `react-hot-toast`
 
 ```tsx
-// src/layout.tsx
+// src/app/layout.tsx
 import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
@@ -187,6 +214,7 @@ export default function RootLayout({
 // .env.local
 NEXT_PUBLIC_BASE_URL = http://localhost:3000;
 SAFE_ACTIONS_STATE_ROUTE = safe-actions-state;
+AUTH_SECRET = your-secret-key
 ```
 
 ---
@@ -215,7 +243,7 @@ const postHandler = async (args?: z.infer<typeof postSchema>) => {
 export const SafeServerAction = createSafeAction(
   postHandler,
   postSchema,
-  ["admin", "founder"],
+  ["admin", "founder"], // TODO: change this argument based on your current loggedin user role
   true
 );
 ```
