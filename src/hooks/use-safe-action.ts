@@ -18,7 +18,7 @@
  * @param options.onComplete - The function to be called, when the server action completes.
  * @param options.toastMessages - The messages to display in the toast, when server action is in pending, success states.
  * For error state the actual error information will be displayed in the toast.
- * @returns safeAction - The function to execute the server action.
+ * @returns clientAction - The function to execute the server action & maintain the state of the server action in the client component.
  * @returns abortAction - The function to abort the server action.
  * @returns error - The error that occurred during the complete server action life cycle.
  * @returns data - The data returned by the server action.
@@ -52,15 +52,19 @@ export const useSafeAction = <TInput, TOutput>(
     FieldErrors<TInput> | undefined
   >(undefined);
   const toastId = useRef<string | null>(null);
-  const abortController = useRef(new AbortController());
+  const abortController = useRef<AbortController | null>(null);
   const [isPending, setIsPending] = useState<boolean>(false);
   const [data, setData] = useState<TOutput | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const safeAction = useCallback(
+  const clientAction = useCallback(
     async (input?: TInput) => {
-      options.onStart?.();
+      abortController.current = new AbortController();
       setIsPending(true);
+      setError(undefined);
+      setFieldErrors(undefined);
+      setData(undefined);
+      options.onStart?.();
       toastId.current = toast.loading(
         options?.toastMessages?.loading || "Processing request...",
         { duration: Infinity }
@@ -100,16 +104,17 @@ export const useSafeAction = <TInput, TOutput>(
         options.onError?.(errorMessage);
       } finally {
         setIsPending(false);
+        abortController.current = null;
         options.onComplete?.();
       }
     },
     [serverAction, options]
   );
 
-  const abortAction = () => abortController.current.abort();
+  const abortAction = () => abortController.current?.abort();
 
   return {
-    safeAction,
+    clientAction,
     abortAction,
     error,
     data,

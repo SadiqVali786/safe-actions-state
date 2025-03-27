@@ -45,13 +45,11 @@ export const createSafeAction = <TInput, TOutput>(
 
       const session = (await response.json()) as SessionObject;
       if (!session.authenticated) return { error: "Un-authenticated" };
-      if (!session.role) return { error: "No role found in session" };
-      if (
-        allowedRoles &&
-        allowedRoles.length > 0 &&
-        !allowedRoles?.includes(session.role)
-      )
-        return { error: "Un-authorized" };
+      if (allowedRoles && allowedRoles.length > 0) {
+        if (!session.role) return { error: "No role found in session" };
+        if (!allowedRoles?.includes(session.role))
+          return { error: "Un-authorized" };
+      }
     }
 
     if (!schema && !!data)

@@ -8,6 +8,8 @@
     "declaration": true,
     "rootDir": "src",
     "outDir": "dist",
+    "removeComments": true,
+    "stripInternal": true,
 
     // Environment setup & latest features
     "lib": ["esnext"],

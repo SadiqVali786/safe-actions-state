@@ -19,12 +19,12 @@ Doing this **manually for every action** is repetitive, time-consuming, and pron
 
 **Safe Actions State** automates all of it, so you can:
 
-✅ **Write 70% less code** 🚀  
-✅ **Ship features 3x faster** ⚡  
+✅ **Write 84% less code for each Server Action** 🚀  
+✅ **Ship features 5x faster** ⚡  
 ✅ **Eliminate boilerplate** 🎯  
 ✅ **Improve error handling & resilience** 🛠️  
-✅ **Enhance UX with real-time toast notifications out of the box** 🔥
-✅ **Handle retries for server actions upon faillure out of the box** 🔄
+✅ **Enhance UX with real-time toast notifications out of the box** 🔥  
+✅ **Handle retries for Server Actions upon faillure out of the box** 🔄
 
 With **Safe Action State**, you get:
 
@@ -37,11 +37,18 @@ With **Safe Action State**, you get:
 
 ## How Much Time Does **Safe Action State** Save?
 
+<div style="display: flex; justify-content: space-evenly; gap: 10px;">
+  <img src="./assets/compare-sa-1.gif" alt="Safe Actions State" width="477" height="1080" />
+  <img src="./assets/compare-sa-2.gif" alt="Safe Actions State" width="477" height="1080" />
+</div>
+</br>
+
 Let’s break it down with real numbers:
 
-- A typical **server action** requires ~**50-70 lines** of boilerplate.
+- A typical **1st server action(LEFT GIF)** requires ~**180-200 lines** of boilerplate.
+- If you have reusable code then the next **server actions(RIGHT GIF)** requires ~**60-70 lines** of boilerplate.
 - Manually handling **validation, errors, and retries** takes **15-20 minutes per action**.
-- Using SafeAction **reduces that to just 2-3 lines**, saving **~70% of keystrokes**.
+- Using SafeAction **reduces that to just ~10 lines**, saving **~84% of keystrokes**.
 - Across a project with **50 API actions**, that’s **15+ hours of development time saved**.
 
 ---
@@ -56,12 +63,12 @@ Let’s break it down with real numbers:
 ### 🔐 **2. Automated Authentication & RBAC**
 
 - Works seamlessly with **NextAuth, Clerk, Kinde, Firebase, or custom auth**.
-- **📊 Saves 10-15 minutes per server action** by automating authentication, role checks, zod validation, error handling, and toast notifications out of the box.
+- **📊 Saves 15-20 minutes per server action** by automating authentication, role checks, zod validation, error handling, and toast notifications out of the box.
 
 ### ✅ **3. Schema Validation with Zod**
 
 - Ensures **type safety** and structured error responses.
-- **📊 Eliminates 50-70 lines of boilerplate per action** and **eliminates validation bugs 100%**.
+- **📊 Eliminates 60-70 lines of boilerplate per action** and **eliminates validation bugs 100% with tight type safety**.
 
 ### 📣 **4. Real-Time Toast Notifications**
 
@@ -76,7 +83,7 @@ Let’s break it down with real numbers:
 ### 🔄 **6. Simple Client-Side Hook (`useSafeAction`)**
 
 - Handles execution of safeAction, errors, loading state, and cancellations seamlessly.
-- **📊 Speeds up feature development by 60-70%**.
+- **📊 Speeds up feature development by ~80%**.
 
 ### 🛠 **7. Secure & Scalable**
 
@@ -89,15 +96,16 @@ Let’s break it down with real numbers:
 
 | Metric                           | Without Safe Actions State | With Safe Actions State | Improvement 🚀      |
 | -------------------------------- | -------------------------- | ----------------------- | ------------------- |
-| **Boilerplate Code**             | ~400 lines                 | ~180 lines              | **55% Less Code**   |
+| **Boilerplate Code 1st Action**  | ~180 lines                 | ~10 lines               | **94% Less Code**   |
+| **Boilerplate Code Next Action** | ~60 lines                  | ~10 lines               | **84% Less Code**   |
 | **Retry Handling**               | Manual                     | Automatic               | **100% Automation** |
 | **zod input validation**         | Manual                     | Automatic               | **100% Automation** |
 | **Error Handling**               | Manual                     | Automatic               | **100% Automation** |
 | **RBAC Implementation**          | Complex                    | Built-in                | **Instant Setup**   |
 | **Toast Notifications**          | Manual                     | Built-in                | **100% Automated**  |
-| **Development Time per Feature** | ~3 hours                   | ~1 hour                 | **3x Faster 🚀**    |
+| **Development Time**             | ~5 hours                   | ~1 hour                 | **5x Faster 🚀**    |
 
-> ✅ **on average Saves 10+ Hours per Week on Next.js Server Action Development!**
+> ✅ **on average Saves 20+ Hours per Week on Next.js Server Action Development!**
 
 ---
 
@@ -115,9 +123,9 @@ Let’s break it down with real numbers:
 
 ---
 
-## 📦 Installation
+## 📦 Installation & Setup Guide for Next.js
 
-Supports **Bun, NPM, Yarn, PNPM**
+### Step 1: Install the package. Supports **Bun, NPM, Yarn, PNPM**
 
 ```sh
 # With Bun
@@ -133,13 +141,59 @@ yarn add safe-actions-state
 pnpm add safe-actions-state
 ```
 
+### Step 2: Install the dependencies
+
+```sh
+npm install zod zod-error react-hot-toast
+```
+
+### Step 3: Setup a API route **_api/safe-actions-state/route.ts_**
+
+```ts
+// api/safe-actions-state/route.ts
+import { auth } from "@/auth"; // adjust this import path as per your project structure
+import { NextRequest, NextResponse } from "next/server";
+
+export const GET = async (req: NextRequest) => {
+  const session = await auth();
+  const authenticated = !!session && !!session?.user;
+  return NextResponse.json({ authenticated, role: session?.user?.role });
+};
+```
+
+### Step 4: Setup `react-hot-toast`
+
+```tsx
+// src/layout.tsx
+import { Toaster } from "react-hot-toast";
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Toaster position="top-center" />
+      </body>
+    </html>
+  );
+}
+```
+
+### Step 5: Setup Environment variables
+
+```ts
+// .env.local
+NEXT_PUBLIC_BASE_URL = http://localhost:3000;
+SAFE_ACTIONS_STATE_ROUTE = safe-actions-state;
+```
+
 ---
 
 # 🚀 How It Works
 
-## 🔹 Server-Side Actions
-
-### `createSafeAction`
+## 🔹 Server-Side Actions `createSafeAction`
 
 Creates a **server-side action** with authentication, role-based access, zod validation and retry logic.
 
@@ -148,21 +202,21 @@ Creates a **server-side action** with authentication, role-based access, zod val
 import { createSafeAction } from "safe-actions-state";
 import { z } from "zod";
 
-const adminPostSchema = z.object({
+const postSchema = z.object({
   title: z.string().min(1),
   content: z.string().min(1),
 });
-const adminPost = async (validatedData?: z.infer<typeof adminPostSchema>) => {
+const postHandler = async (args?: z.infer<typeof postSchema>) => {
   // only DB interaction logic goes here & nothing else, WE HANDLE EVERYTHING ELSE OUT OF THE BOX FOR YOU!
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  return { data: { title: "title", content: "content", id: "123" } };
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  return { data: { ...args, id: "123" } };
 };
 
-export const SafeAdminPostAction = createSafeAction(
-  adminPost,
-  adminPostSchema,
+export const SafeServerAction = createSafeAction(
+  postHandler,
+  postSchema,
   ["admin", "founder"],
-  3
+  true
 );
 ```
 
@@ -185,34 +239,45 @@ export const SafeAdminPostAction = createSafeAction(
 
 ---
 
-## 🔹 Client-Side Hook
-
-### `useSafeAction`
+## 🔹 Client-Side Hook `useSafeAction`
 
 A **React hook** to execute Safe Actions State from the client with real-time status tracking.
 
 ```tsx
 "use client";
+import { SafeServerAction } from "@/actions/with-package";
 import { useSafeAction } from "safe-actions-state";
-import { SafeAdminPostAction } from "@/actions/create-post";
 
 export default function Home() {
-  const { safeAction, abortAction, data, isPending } = useSafeAction(
-    SafeAdminPostAction,
-    {
-      toastMessages: {
-        loading: "Creating post...",
-        success: "Post created successfully",
-      },
-    }
-  );
+  const {
+    clientAction,
+    isPending,
+    fieldErrors,
+    setFieldErrors,
+    error,
+    data,
+    abortAction,
+  } = useSafeAction(SafeServerAction, {
+    toastMessages: {
+      loading: "Creating post...",
+      success: "Post created successfully",
+    },
+    onStart: () => console.log("STARTED"),
+    onSuccess: (data) => console.log("SUCCESS", data),
+    onError: (error) => console.log("ERROR", error),
+    onComplete: () => console.log("COMPLETE"),
+    retries: 3,
+  });
 
   return (
-    <button
-      onClick={() => safeAction({ title: "Test", content: "Test Content" })}
-    >
-      {isPending ? "Creating..." : "Create Post"}
-    </button>
+    <>
+      <button
+        onClick={() => clientAction({ title: "Test", content: "Test Content" })}
+      >
+        {isPending ? "Creating..." : "Create Post"}
+      </button>
+      <pre>{JSON.stringify({ fieldErrors, error, data }, null, 2)}</pre>
+    </>
   );
 }
 ```
@@ -238,7 +303,421 @@ export default function Home() {
 - **`error?`** - Error message if the action fails.
 - **`data?`** - Data you returned in the server action handler function after DB interaction.
 - **`isPending`** - Boolean indicating if the action is in progress.
-- **`fieldErrors?`** - The field errors that occurred during the server action if any.
+- **`fieldErrors?`** - The field errors that occurred in zod validation if any.
+- **`setFieldErrors`** - The function to set the field errors.
+
+# 🚀 Sample Codes for each possible scenario
+
+<img src="./assets/different-actions.png" alt="Safe Actions State" />
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary> 
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any public client can consume this action</span> 
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=false, roles=NA, args=undefined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema>) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    undefined,
+    undefined,
+    false
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction()}
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+</details>
+</br>
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary>
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any public client can consume this action with arguments</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=false, roles=NA, args=defined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    postSchema,
+    undefined,
+    false
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction({ title: "test", content: "test" })} 
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+</details>
+</br>
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary>
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Only allowed roles can consume this action with arguments</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=defined, args=defined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    postSchema,
+    ["admin", "founder"],
+    true
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction({ title: "test", content: "test" })} 
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+</details>
+</br>
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary>
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Only allowed roles can consume this action</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=defined, args=undefined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    undefined,
+    ["admin", "founder"],
+    true
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction()} // { title: "test", content: "test" }
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+</details>
+</br>
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary>
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any authenticated client can consume this action with arguments</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=undefined, args=defined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    postSchema,
+    undefined,
+    true
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction({ title: "test", content: "test" })}
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+
+</details>
+</br>
+
+<details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
+  <summary>
+    <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any authenticated client can consume this action</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=undefined, args=undefined</span>
+  </summary>
+
+  <pre style="background-color: #000000;">
+  <code class="language-tsx" >
+  // src/actions/with-package.ts
+  "use server";
+  import { createSafeAction } from "safe-actions-state";
+  import { z } from "zod";
+
+  const postSchema = z.object({
+    title: z.string().min(1),
+    content: z.string().min(1),
+  });
+  const postHandler = async (args?: z.infer&lt;typeof postSchema>) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return { data: { ...args, id: "123" } };
+  };
+
+  export const SafeServerAction = createSafeAction(
+    postHandler,
+    undefined,
+    undefined,
+    true
+  );
+
+  // src/app/with-package.tsx
+  "use client";
+  import { SafeServerAction } from "@/actions/with-package";
+  import { useSafeAction } from "safe-actions-state";
+
+  export default function Home() {
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
+      useSafeAction(SafeServerAction, {
+        toastMessages: {
+          loading: "Creating post...",
+          success: "Post created successfully",
+        },
+        onStart: () => console.log("STARTED"),
+        onSuccess: (data) => console.log("SUCCESS", data),
+        onError: (error) => console.log("ERROR", error),
+        onComplete: () => console.log("COMPLETE"),
+        retries: 3,
+      });
+
+    return (
+      &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
+        &lt;button&gt;
+          className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
+          onClick={async () => await clientAction()} // { title: "test", content: "test" }
+        &gt;
+          {isPending ? "Creating..." : "Create Post"}
+        &lt;/button&gt;
+        &lt;pre className="text-white"&gt;
+          {JSON.stringify({ fieldErrors, error, data }, null, 2)}
+        &lt;/pre&gt;
+      &lt;/div&gt;
+    );
+  }
+</code>
+
+  </pre>
+
+</details>
 
 ---
 
@@ -259,7 +738,7 @@ Licensed under **MIT License**. Free to use, modify, and distribute. Give credit
 
 ## 🚀 Start Building Faster with Safe Actions State!
 
-Handle Server Action errors gracefully, automate zod validation, enforce RBAC, realtime toast notifications and boost your Next.js development. Install now:
+Handle Server Action errors gracefully, automate zod validation, enforce RBAC, realtime toast notifications, and `reduce your server actions developement time by 80%`. Install now:
 
 ```sh
 npm install safe-actions-state

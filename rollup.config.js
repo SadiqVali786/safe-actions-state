@@ -19,6 +19,7 @@ export default [
         file: packageJson.module,
         format: "esm",
         sourcemap: false,
+        compact: true, // Minify output
       },
     ],
     plugins: [
@@ -26,14 +27,16 @@ export default [
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json" }),
-      terser(),
+      terser({ format: { comments: false } }), // Remove comments
     ],
+    treeshake: true, // Remove unused code
     external: [
       "zod",
       "react-hot-toast",
       "zod-error",
       "next",
       "react",
+      "@types/react",
       "typescript",
     ],
   },
