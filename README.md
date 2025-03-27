@@ -37,9 +37,9 @@ With **Safe Action State**, you get:
 
 ## How Much Time Does **Safe Action State** Save?
 
-<div style="display: flex; justify-content: space-evenly; gap: 10px;">
-  <img src="./assets/compare-sa-1.gif" alt="Safe Actions State" width="477" height="1080" />
-  <img src="./assets/compare-sa-2.gif" alt="Safe Actions State" width="477" height="1080" />
+<div style="display: flex; justify-content: space-evenly; gap: 10px; width: 100%; max-width: 1000px;">
+  <img src="./assets/compare-sa-1.gif" alt="Safe Actions State" width="50%" height="1080" />
+  <img src="./assets/compare-sa-2.gif" alt="Safe Actions State" width="50%" height="1080" />
 </div>
 </br>
 
@@ -313,7 +313,7 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary> 
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any public client can consume this action</span> 
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=false, roles=NA, args=undefined</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=false, roles=NA, args=undefined```</span>
   </summary>
 
   <pre style="background-color: #000000;">
@@ -381,7 +381,7 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any public client can consume this action with arguments</span>
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=false, roles=NA, args=defined</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=false, roles=NA, args=defined```</span>
   </summary>
 
   <pre style="background-color: #000000;">
@@ -449,7 +449,7 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Only allowed roles can consume this action with arguments</span>
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=defined, args=defined</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=true, roles=defined, args=defined```</span>
   </summary>
 
   <pre style="background-color: #000000;">
@@ -517,8 +517,8 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Only allowed roles can consume this action</span>
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=defined, args=undefined</span>
-  </summary>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=true, roles=defined, args=undefined```</span>
+    </summary>
 
   <pre style="background-color: #000000;">
   <code class="language-tsx" >
@@ -585,7 +585,7 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any authenticated client can consume this action with arguments</span>
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=undefined, args=defined</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=true, roles=undefined, args=defined```</span>
   </summary>
 
   <pre style="background-color: #000000;">
@@ -654,7 +654,7 @@ export default function Home() {
 <details style="background-color: #F0FFFF; padding-left: 10px; padding-top: 10px; padding-bottom: 10px;">
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Any authenticated client can consume this action</span>
-    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">private=true, roles=undefined, args=undefined</span>
+    <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=true, roles=undefined, args=undefined```</span>
   </summary>
 
   <pre style="background-color: #000000;">
