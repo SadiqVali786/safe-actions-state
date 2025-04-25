@@ -15,7 +15,7 @@ As a developer, i know we **hate writing repetitive code for every Server Action
 - Real-time toast notifications for user feedback
 - State management for UI updates
 
-Doing this **manually for every action** is repetitive, time-consuming, and prone to errors. Wouldn’t it be great if all this was handled **automatically**?
+Doing this **manually for every action** is repetitive, time-consuming, and prone to errors. Wouldn't it be great if all this was handled **automatically**?
 
 **Safe Actions State** automates all of it, so you can:
 
@@ -43,13 +43,13 @@ With **Safe Action State**, you get:
 </div>
 </br>
 
-Let’s break it down with real numbers:
+Let's break it down with real numbers:
 
 - A typical **1st server action(LEFT GIF)** requires ~**180-200 lines** of boilerplate.
 - If you have reusable code then the next **server actions(RIGHT GIF)** requires ~**60-70 lines** of boilerplate.
 - Manually handling **validation, errors, and retries** takes **15-20 minutes per action**.
 - Using SafeAction **reduces that to just ~10 lines**, saving **~84% of keystrokes**.
-- Across a project with **50 API actions**, that’s **15+ hours of development time saved**.
+- Across a project with **50 API actions**, that's **15+ hours of development time saved**.
 
 ---
 
@@ -180,11 +180,13 @@ npm install zod zod-error react-hot-toast
 // src/app/api/safe-actions-state/route.ts
 import { auth } from "@/auth"; // adjust this import path as per your project structure
 import { NextRequest, NextResponse } from "next/server";
+import { SessionObject } from "safe-actions-state";
 
 export const GET = async (req: NextRequest) => {
   const session = await auth();
   const authenticated = !!session && !!session?.user;
-  return NextResponse.json({ authenticated, role: session?.user?.role });
+  const payload: SessionObject = { authenticated, role: session?.user?.role };
+  return NextResponse.json(payload);
 };
 ```
 
@@ -234,31 +236,32 @@ const postSchema = z.object({
   title: z.string().min(1),
   content: z.string().min(1),
 });
-const postHandler = async (args?: z.infer<typeof postSchema>) => {
+
+const postHandler = async (args: z.infer<typeof postSchema>) => {
   // only DB interaction logic goes here & nothing else, WE HANDLE EVERYTHING ELSE OUT OF THE BOX FOR YOU!
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  return { data: { ...args, id: "123" } };
+  return { data: { title: args.title, content: args.content, id: "123" } };
 };
 
-export const SafeServerAction = createSafeAction(
-  postHandler,
-  postSchema,
-  ["admin", "founder"], // TODO: change this argument based on your current loggedin user role
-  true
-);
+export const SafeServerAction = createSafeAction({
+  action: { withInputs: true, handler: postHandler, schema: postSchema },
+  actionType: { isPrivate: true, allowedRoles: ["admin", "founder"] }, // TODO: Change roles based on your project
+});
 ```
 
 ### Parameters
 
-| Name           | Type                              | Description                                                                                                                         |
-| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `handler`      | `(data?) => Promise<ActionState>` | Function responsible for DB interaction and business logic                                                                          |
-| `schema`       | `z.Schema<T>`                     | (Optional if server action has no input arguments) zod validation schema.                                                           |
-| `allowedRoles` | `string[]`                        | (Optional) Allowed roles for accessing the action. If not specified then all authenticated users are allowed to consume the action. |
-| `retries`      | `number`                          | (Optional) Number of retry attempts.                                                                                                |
+| Name                      | Type                                       | Description                                                                                                                         |
+| ------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                  | `Action<TInput, TOutput>`                  | Object containing the handler function and schema for input validation                                                              |
+| `action.handler`          | `(validatedData?) => Promise<ActionState>` | Function responsible for DB interaction and business logic                                                                          |
+| `action.schema`           | `z.Schema<T>`                              | (Optional if server action has no input arguments) zod validation schema.                                                           |
+| `actionType`              | `ActionType`                               | Object specifying the access control configuration                                                                                  |
+| `actionType.isPrivate`    | `boolean`                                  | Whether the action requires authentication                                                                                          |
+| `actionType.allowedRoles` | `string[]`                                 | (Optional) Allowed roles for accessing the action. If not specified then all authenticated users are allowed to consume the action. |
 
 > **📝 NOTE:**  
-> `AbortController` and `withRetry` are **fully managed internally** you don’t need to handle them manually!
+> `AbortController` and `withRetry` are **fully managed internally** you don't need to handle them manually!
 > Actions are automatically retried upon failure and can be canceled effortlessly. `useSafeAction` exposes `abortAction` method to abort the server action.
 
 ### Returns
@@ -274,9 +277,20 @@ A **React hook** to execute Safe Actions State from the client with real-time st
 ```tsx
 "use client";
 import { SafeServerAction } from "@/actions/with-package";
+import { useState } from "react";
 import { useSafeAction } from "safe-actions-state";
 
+type Tweet = {
+  title: string;
+  content: string;
+  id: string;
+};
+
 export default function Home() {
+  const [tweets, setTweets] = useState<Tweet[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   const {
     clientAction,
     isPending,
@@ -287,13 +301,27 @@ export default function Home() {
     abortAction,
   } = useSafeAction(SafeServerAction, {
     toastMessages: {
-      loading: "Creating post...",
-      success: "Post created successfully",
+      loading: "Fetching Tweets...",
+      success: "Tweets fetched successfully",
     },
     onStart: () => console.log("STARTED"),
-    onSuccess: (data) => console.log("SUCCESS", data),
-    onError: (error) => console.log("ERROR", error),
-    onComplete: () => console.log("COMPLETE"),
+    onSuccess: (data) => {
+      console.log("SUCCESS", data);
+      if (data) {
+        setTweets((prev) => [...prev, ...data]);
+        setPage((prev) => prev + 1);
+      } else {
+        setHasMore(false);
+      }
+    },
+    onError: (error) => {
+      setHasMore(false);
+      console.log("ERROR", error);
+    },
+    onComplete: () => {
+      setHasMore(false);
+      console.log("COMPLETE");
+    },
     retries: 3,
   });
 
@@ -314,8 +342,9 @@ export default function Home() {
 
 | Name                            | Type                                   | Description                                              |
 | ------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-| `action`                        | `Action<TInput, TOutput>`              | The server action to execute.                            |
-| `options`                       | `UseActionOptions<T>`                  | (Optional) Callbacks and toast messages.                 |
+| `serverAction`                  | `SafeActionType<TInput, TOutput>`      | The server action to execute.                            |
+| `options`                       | `UseActionOptions<TOutput>`            | (Optional) Configuration options for the action.         |
+| `options.retries?`              | `number`                               | (Optional) Number of retry attempts (default: 3)         |
 | `options.onStart?`              | `() => void`                           | (Optional) The function to call when the action starts   |
 | `options.onSuccess?`            | `(data?: TOutput) => void`             | (Optional) The function to call when the action succeeds |
 | `options.onError?`              | `(error: string) => void`              | (Optional) The function to call when the action fails.   |
@@ -326,8 +355,8 @@ export default function Home() {
 
 ### Returns
 
-- **`safeAction(input?)`** - Executes the action.
-- **`abortAction()`** - Signal that Cancels the execution.
+- **`clientAction(input: TInput)`** - Function to execute the server action
+- **`abortAction()`** - Signal that Cancels the execution of current action.
 - **`error?`** - Error message if the action fails.
 - **`data?`** - Data you returned in the server action handler function after DB interaction.
 - **`isPending`** - Boolean indicating if the action is in progress.
@@ -355,17 +384,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema>) => {
+
+  const postHandler = async () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { id: "123", title: "Test", content: "Test Content" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    undefined,
-    undefined,
-    false
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: false, handler: postHandler },
+    actionType: { isPrivate: false }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -373,18 +401,17 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, error, fieldErrors, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
@@ -423,17 +450,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+
+  const postHandler = async (validatedData: z.infer&lt;typeof postSchema&gt;) => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { ...validatedData, id: "123" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    postSchema,
-    undefined,
-    false
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: true, handler: postHandler, schema: postSchema },
+    actionType: { isPrivate: false }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -441,24 +467,23 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
         &lt;button&gt;
           className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
-          onClick={async () => await clientAction({ title: "test", content: "test" })} 
+          onClick={async () => await clientAction({ title: "test", content: "test" })}
         &gt;
           {isPending ? "Creating..." : "Create Post"}
         &lt;/button&gt;
@@ -491,17 +516,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+
+  const postHandler = async (validatedData: z.infer&lt;typeof postSchema&gt;) => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { ...validatedData, id: "123" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    postSchema,
-    ["admin", "founder"],
-    true
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: true, handler: postHandler, schema: postSchema },
+    actionType: { isPrivate: true, allowedRoles: ["admin", "founder"] }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -509,24 +533,23 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
         &lt;button&gt;
           className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
-          onClick={async () => await clientAction({ title: "test", content: "test" })} 
+          onClick={async () => await clientAction({ title: "test", content: "test" })}
         &gt;
           {isPending ? "Creating..." : "Create Post"}
         &lt;/button&gt;
@@ -546,7 +569,7 @@ export default function Home() {
   <summary>
     <span style="color: #0000FF; font-weight: bold; font-size: 1.5rem;">Only allowed roles can consume this action</span>
     <span style="color: #A0785A; font-weight: bold; font-size: 1.2rem;">```private=true, roles=defined, args=undefined```</span>
-    </summary>
+  </summary>
 
   <pre style="background-color: #000000;">
   <code class="language-tsx" >
@@ -559,17 +582,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+
+  const postHandler = async () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { id: "123", title: "Test", content: "Test Content" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    undefined,
-    ["admin", "founder"],
-    true
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: false, handler: postHandler },
+    actionType: { isPrivate: true, allowedRoles: ["admin", "founder"] }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -577,24 +599,23 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, error, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
         &lt;button&gt;
           className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
-          onClick={async () => await clientAction()} // { title: "test", content: "test" }
+          onClick={async () => await clientAction()}
         &gt;
           {isPending ? "Creating..." : "Create Post"}
         &lt;/button&gt;
@@ -627,17 +648,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema&gt;) => {
+
+  const postHandler = async (validatedData: z.infer&lt;typeof postSchema&gt;) => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { ...validatedData, id: "123" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    postSchema,
-    undefined,
-    true
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: true, handler: postHandler, schema: postSchema },
+    actionType: { isPrivate: true }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -645,18 +665,17 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, fieldErrors, error, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
@@ -696,17 +715,16 @@ export default function Home() {
     title: z.string().min(1),
     content: z.string().min(1),
   });
-  const postHandler = async (args?: z.infer&lt;typeof postSchema>) => {
+
+  const postHandler = async () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    return { data: { ...args, id: "123" } };
+    return { data: { id: "123", title: "Test", content: "Test Content" } };
   };
 
-  export const SafeServerAction = createSafeAction(
-    postHandler,
-    undefined,
-    undefined,
-    true
-  );
+  export const SafeServerAction = createSafeAction({
+    action: { withInputs: false, handler: postHandler },
+    actionType: { isPrivate: true }
+  });
 
   // src/app/with-package.tsx
   "use client";
@@ -714,24 +732,23 @@ export default function Home() {
   import { useSafeAction } from "safe-actions-state";
 
   export default function Home() {
-    const { clientAction, isPending, fieldErrors, error, data, abortAction } =
-      useSafeAction(SafeServerAction, {
-        toastMessages: {
-          loading: "Creating post...",
-          success: "Post created successfully",
-        },
-        onStart: () => console.log("STARTED"),
-        onSuccess: (data) => console.log("SUCCESS", data),
-        onError: (error) => console.log("ERROR", error),
-        onComplete: () => console.log("COMPLETE"),
-        retries: 3,
-      });
+    const { clientAction, isPending, error, data, abortAction } = useSafeAction(SafeServerAction, {
+      toastMessages: {
+        loading: "Creating post...",
+        success: "Post created successfully",
+      },
+      onStart: () => console.log("STARTED"),
+      onSuccess: (data) => console.log("SUCCESS", data),
+      onError: (error) => console.log("ERROR", error),
+      onComplete: () => console.log("COMPLETE"),
+      retries: 3,
+    });
 
     return (
       &lt;div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20 bg-black">
         &lt;button&gt;
           className="cursor-pointer border max-w-fit px-4 py-2 rounded-2xl bg-blue-500 text-black text-2xl"
-          onClick={async () => await clientAction()} // { title: "test", content: "test" }
+          onClick={async () => await clientAction()}
         &gt;
           {isPending ? "Creating..." : "Create Post"}
         &lt;/button&gt;
