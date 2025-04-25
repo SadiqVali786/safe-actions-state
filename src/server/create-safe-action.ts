@@ -29,26 +29,27 @@ import type { ActionState, FieldErrors } from "../types";
 type PublicAction = { isPrivate: false };
 type PrivateAction = { isPrivate: true };
 type RoleBasedAction = { isPrivate: true; allowedRoles: string[] };
+type ActionType = PublicAction | PrivateAction | RoleBasedAction;
 
-type SafeActionPropsWithInputs<TInput, TOutput> = {
+type ActionWithInputs<TInput, TOutput> = {
   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>;
   schema: z.Schema<TInput>;
-  actionType: PublicAction | PrivateAction | RoleBasedAction;
 };
-
-type SafeActionPropsWithoutInputs<TOutput> = {
+type ActionWithoutInputs<TOutput> = {
   handler: () => Promise<ActionState<undefined, TOutput>>;
   schema: undefined;
-  actionType: PublicAction | PrivateAction | RoleBasedAction;
+};
+type Action<TInput, TOutput> =
+  | ActionWithInputs<TInput, TOutput>
+  | ActionWithoutInputs<TOutput>;
+
+type SafeActionProps<TInput, TOutput> = {
+  action: Action<TInput, TOutput>;
+  actionType: ActionType;
 };
 
-type SafeActionProps<TInput, TOutput> =
-  | SafeActionPropsWithInputs<TInput, TOutput>
-  | SafeActionPropsWithoutInputs<TOutput>;
-
 export const createSafeAction = <TInput, TOutput>({
-  handler,
-  schema,
+  action,
   actionType,
 }: SafeActionProps<TInput, TOutput>) => {
   return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
@@ -72,9 +73,9 @@ export const createSafeAction = <TInput, TOutput>({
       }
     }
 
-    if (!schema && !data) return await handler();
+    if (!action.schema && !data) return await action.handler();
 
-    const validationResult = schema!.safeParse(data);
+    const validationResult = action.schema!.safeParse(data);
     if (!validationResult.success) {
       return {
         fieldErrors: validationResult.error.flatten()
@@ -89,7 +90,7 @@ export const createSafeAction = <TInput, TOutput>({
       };
     }
 
-    return await handler(validationResult.data);
+    return await action.handler(validationResult.data);
   };
 };
 
