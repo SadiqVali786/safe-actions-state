@@ -32,7 +32,7 @@ import type { ActionState, FieldErrors } from "../types";
 import { withRetry } from "./with-retry";
 
 export type SafeActionType<TInput, TOutput> = (
-  data?: TInput
+  data: TInput
 ) => Promise<ActionState<TInput, TOutput>>;
 
 export type UseActionOptions<TOutput> = {
@@ -58,7 +58,7 @@ export const useSafeAction = <TInput, TOutput>(
   const [error, setError] = useState<string | undefined>(undefined);
 
   const clientAction = useCallback(
-    async (input?: TInput) => {
+    async (input: TInput) => {
       abortController.current = new AbortController();
       setIsPending(true);
       setError(undefined);

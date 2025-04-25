@@ -28,7 +28,7 @@ import type { ActionState, FieldErrors } from "../types";
 
 export const createSafeAction = <TInput, TOutput>(
   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
-  schema?: z.Schema<TInput>,
+  schema: z.Schema<TInput>,
   allowedRoles?: string[],
   isPrivate: boolean = true
 ) => {
