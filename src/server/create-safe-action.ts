@@ -26,34 +26,53 @@ import { cookies } from "next/headers";
 import { generateErrorMessage } from "zod-error";
 import type { ActionState, FieldErrors } from "../types";
 
-export const createSafeAction = <TInput, TOutput>(
-  handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
-  schema: TInput extends undefined ? undefined : z.Schema<TInput>,
-  isPrivate: boolean = true,
-  allowedRoles?: string[]
-) => {
+type PublicAction = { isPrivate: false };
+type PrivateAction = { isPrivate: true };
+type RoleBasedAction = { isPrivate: true; allowedRoles: string[] };
+
+type SafeActionPropsWithInputs<TInput, TOutput> = {
+  handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>;
+  schema: z.Schema<TInput>;
+  actionType: PublicAction | PrivateAction | RoleBasedAction;
+};
+
+type SafeActionPropsWithoutInputs<TOutput> = {
+  handler: () => Promise<ActionState<undefined, TOutput>>;
+  schema: undefined;
+  actionType: PublicAction | PrivateAction | RoleBasedAction;
+};
+
+type SafeActionProps<TInput, TOutput> =
+  | SafeActionPropsWithInputs<TInput, TOutput>
+  | SafeActionPropsWithoutInputs<TOutput>;
+
+export const createSafeAction = <TInput, TOutput>({
+  handler,
+  schema,
+  actionType,
+}: SafeActionProps<TInput, TOutput>) => {
   return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
-    if (isPrivate) {
+    if (actionType.isPrivate) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/${process.env.SAFE_ACTIONS_STATE_ROUTE}`,
         { headers: { Cookie: (await cookies()).toString() } }
       );
 
       const session = (await response.json()) as SessionObject;
-      if (!session.authenticated) {
-        return { error: "Un-authenticated" };
-      }
-      if (allowedRoles && allowedRoles.length > 0) {
-        if (!session.role) {
-          return { error: "No role found in session" };
-        }
-        if (!allowedRoles?.includes(session.role)) {
+      if (!session.authenticated) return { error: "Un-authenticated" };
+
+      if (
+        "allowedRoles" in actionType &&
+        actionType.allowedRoles &&
+        actionType.allowedRoles.length > 0
+      ) {
+        if (!session.role) return { error: "No role found in session" };
+        if (!actionType.allowedRoles.includes(session.role))
           return { error: "Un-authorized" };
-        }
       }
     }
 
-    if (!schema && !data) return await handler(undefined as TInput);
+    if (!schema && !data) return await handler();
 
     const validationResult = schema!.safeParse(data);
     if (!validationResult.success) {
@@ -73,3 +92,58 @@ export const createSafeAction = <TInput, TOutput>(
     return await handler(validationResult.data);
   };
 };
+
+// export type SessionObject = { authenticated: boolean; role?: string };
+
+// import type { z } from "zod";
+// import { cookies } from "next/headers";
+// import { generateErrorMessage } from "zod-error";
+// import type { ActionState, FieldErrors } from "../types";
+
+// export const createSafeAction = <TInput, TOutput>(
+//   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
+//   schema: TInput extends undefined ? undefined : z.Schema<TInput>,
+//   isPrivate: boolean = true,
+//   allowedRoles?: string[]
+// ) => {
+//   return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
+//     if (isPrivate) {
+//       const response = await fetch(
+//         `${process.env.NEXT_PUBLIC_BASE_URL}/api/${process.env.SAFE_ACTIONS_STATE_ROUTE}`,
+//         { headers: { Cookie: (await cookies()).toString() } }
+//       );
+
+//       const session = (await response.json()) as SessionObject;
+//       if (!session.authenticated) {
+//         return { error: "Un-authenticated" };
+//       }
+//       if (allowedRoles && allowedRoles.length > 0) {
+//         if (!session.role) {
+//           return { error: "No role found in session" };
+//         }
+//         if (!allowedRoles?.includes(session.role)) {
+//           return { error: "Un-authorized" };
+//         }
+//       }
+//     }
+
+//     if (!schema && !data) return await handler(undefined as TInput);
+
+//     const validationResult = schema!.safeParse(data);
+//     if (!validationResult.success) {
+//       return {
+//         fieldErrors: validationResult.error.flatten()
+//           .fieldErrors as FieldErrors<TInput>,
+//         error: generateErrorMessage(validationResult.error.issues, {
+//           maxErrors: 1,
+//           delimiter: { component: ": " },
+//           message: { enabled: true, label: "" },
+//           // path: { enabled: false }, TODO:
+//           code: { enabled: false },
+//         }),
+//       };
+//     }
+
+//     return await handler(validationResult.data);
+//   };
+// };
