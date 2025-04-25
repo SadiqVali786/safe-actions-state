@@ -28,9 +28,9 @@ import type { ActionState, FieldErrors } from "../types";
 
 export const createSafeAction = <TInput, TOutput>(
   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
-  schema: z.Schema<TInput>,
-  allowedRoles?: string[],
-  isPrivate: boolean = true
+  schema: TInput extends undefined ? undefined : z.Schema<TInput>,
+  isPrivate: boolean = true,
+  allowedRoles?: string[]
 ) => {
   return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
     if (isPrivate) {
@@ -40,21 +40,21 @@ export const createSafeAction = <TInput, TOutput>(
       );
 
       const session = (await response.json()) as SessionObject;
-      if (!session.authenticated) return { error: "Un-authenticated" };
+      if (!session.authenticated) {
+        return { error: "Un-authenticated" };
+      }
       if (allowedRoles && allowedRoles.length > 0) {
-        if (!session.role) return { error: "No role found in session" };
-        if (!allowedRoles?.includes(session.role))
+        if (!session.role) {
+          return { error: "No role found in session" };
+        }
+        if (!allowedRoles?.includes(session.role)) {
           return { error: "Un-authorized" };
+        }
       }
     }
 
-    if (!schema && !!data)
-      return { error: "Schema is required when data is provided" };
-    if (!!schema && !data)
-      return { error: "Data is required when schema is provided" };
-    if (!schema && !data) return await handler(data);
+    if (!schema && !data) return await handler(undefined as TInput);
 
-    // if (!!schema && !!data) {} // continue
     const validationResult = schema!.safeParse(data);
     if (!validationResult.success) {
       return {
