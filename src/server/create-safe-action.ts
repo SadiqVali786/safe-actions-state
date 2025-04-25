@@ -27,16 +27,12 @@ import { generateErrorMessage } from "zod-error";
 import type { ActionState, FieldErrors } from "../types";
 
 export const createSafeAction = <TInput, TOutput>(
-  handler: (
-    validatedData?: TInput
-  ) => Promise<ActionState<TInput, TOutput> | void>,
+  handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>,
   schema?: z.Schema<TInput>,
   allowedRoles?: string[],
   isPrivate: boolean = true
 ) => {
-  return async (
-    data?: TInput
-  ): Promise<ActionState<TInput, TOutput> | void> => {
+  return async (data: TInput): Promise<ActionState<TInput, TOutput>> => {
     if (isPrivate) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/${process.env.SAFE_ACTIONS_STATE_ROUTE}`,
@@ -56,7 +52,7 @@ export const createSafeAction = <TInput, TOutput>(
       return { error: "Schema is required when data is provided" };
     if (!!schema && !data)
       return { error: "Data is required when schema is provided" };
-    if (!schema && !data) return await handler(undefined);
+    if (!schema && !data) return await handler(data);
 
     // if (!!schema && !!data) {} // continue
     const validationResult = schema!.safeParse(data);
