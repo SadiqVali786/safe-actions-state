@@ -32,12 +32,13 @@ type RoleBasedAction = { isPrivate: true; allowedRoles: string[] };
 type ActionType = PublicAction | PrivateAction | RoleBasedAction;
 
 type ActionWithInputs<TInput, TOutput> = {
+  withInputs: true;
   handler: (validatedData: TInput) => Promise<ActionState<TInput, TOutput>>;
   schema: z.Schema<TInput>;
 };
 type ActionWithoutInputs<TOutput> = {
+  withInputs: false;
   handler: () => Promise<ActionState<undefined, TOutput>>;
-  schema: undefined;
 };
 type Action<TInput, TOutput> =
   | ActionWithInputs<TInput, TOutput>
@@ -73,7 +74,7 @@ export const createSafeAction = <TInput, TOutput>({
       }
     }
 
-    if (!action.schema && !data) return await action.handler();
+    if (!action.withInputs) return await action.handler();
 
     const validationResult = action.schema!.safeParse(data);
     if (!validationResult.success) {
