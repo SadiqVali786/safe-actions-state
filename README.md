@@ -72,7 +72,7 @@ Let's break it down with real numbers:
 
 ### 📣 **4. Real-Time Toast Notifications**
 
-- Real-time user feedback via **react-hot-toast**.
+- Real-time user feedback via **sonner**.
 - **📊 Enhances UX by reducing perceived response time by 25-40%**.
 
 ### ⚡ **5. Automatic Request Cancellation**
@@ -171,7 +171,7 @@ pnpm add safe-actions-state
 ### Step 2: Install the dependencies
 
 ```sh
-npm install zod zod-error react-hot-toast
+npm install zod zod-error sonner
 ```
 
 ### Step 3: Setup a API route **src/app/api/safe-actions-state/route.ts**
@@ -190,11 +190,11 @@ export const GET = async (req: NextRequest) => {
 };
 ```
 
-### Step 4: Setup `react-hot-toast`
+### Step 4: Setup `sonner`
 
 ```tsx
 // src/app/layout.tsx
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
