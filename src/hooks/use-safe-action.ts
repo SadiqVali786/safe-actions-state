@@ -26,7 +26,7 @@
  * @returns fieldErrors - The field errors that occurred during zod validation.
  */
 
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useState, useCallback, useRef } from "react";
 import type { ActionState, FieldErrors } from "../types";
 import { withRetry } from "./with-retry";
@@ -51,7 +51,7 @@ export const useSafeAction = <TInput, TOutput>(
   const [fieldErrors, setFieldErrors] = useState<
     FieldErrors<TInput> | undefined
   >(undefined);
-  const toastId = useRef<string | null>(null);
+  const toastId = useRef<string | number | null>(null);
   const abortController = useRef<AbortController | null>(null);
   const [isPending, setIsPending] = useState<boolean>(false);
   const [data, setData] = useState<TOutput | undefined>(undefined);
